@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"gofiber/internal/db"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -48,10 +50,10 @@ func main() {
 	})
 
 	//Wildcards: GET http://localhost:3000/api/user/jai
-	app.Get("/api/*", func(c *fiber.Ctx) error {
-		return c.SendString("API path: " + c.Params("*"))
-		// => API path: user/jai
-	})
+	// app.Get("/api/*", func(c *fiber.Ctx) error {
+	// 	return c.SendString("API path: " + c.Params("*"))
+	// 	// => API path: user/jai
+	// })
 
 	// http://localhost:3000/static/readme.txt
 	app.Static("/static", "./public")
@@ -59,6 +61,7 @@ func main() {
 	//Route Handlers
 	app.Get("/api/getName	", func(c *fiber.Ctx) error {
 		return c.SendString("The name is fiber!")
+
 		// => API path: user/jai
 	})
 
@@ -66,6 +69,22 @@ func main() {
 		return c.SendString("The name is fiber!")
 		// => API path: user/jai
 	})
+
+	//app.Get("/api/connect", func(c *fiber.Ctx) error {
+	if !fiber.IsChild() {
+		func() {
+			mongo := db.Mongo{}
+			s := ""
+			s += mongo.Connect()
+			defer mongo.Client.Disconnect(context.TODO())
+			s += mongo.List()
+			mongo.Init()
+			mongo.Insert()
+			mongo.Find()
+			mongo.Update()
+			fmt.Println(s)
+		}()
+	}
 
 	app.Listen(":3000")
 }
